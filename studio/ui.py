@@ -5,7 +5,7 @@ from google.colab import output
 
 from .catalog import load_catalog
 from .controller import StudioController
-from .manager import install_model, uninstall_model, is_installed, output_dir
+from .manager import install_model, uninstall_model, is_installed, output_dir, model_root
 from .runtime import inspect_runtime, can_attempt_model
 from .progress import ColabProgress
 
@@ -51,15 +51,15 @@ def build_dashboard():
         def action():
             spec = check_model(model_id)
             path = install_model(spec)
-            return f"Model installed in Google Drive: {path}\\nGPU is only required for loading and generation."
-        run_status(prefix + "_manager_status", "Checking Drive space and downloading model files…", action)
+            return f"Model installed in session cache: {path}\\nModel files are temporary in this Colab session; generated outputs remain in Google Drive. GPU is only required for loading and generation."
+        run_status(prefix + "_manager_status", "Checking model-cache disk space and downloading model files…", action)
 
     def update_cb(model_id):
         def action():
             spec = check_model(model_id)
             path = install_model(spec, force=True)
-            return f"Model updated in Google Drive: {path}\\nGPU is only required for loading and generation."
-        run_status(prefix + "_manager_status", "Checking Drive space and updating model files…", action)
+            return f"Model updated in session cache: {path}\\nModel files are temporary in this Colab session; generated outputs remain in Google Drive. GPU is only required for loading and generation."
+        run_status(prefix + "_manager_status", "Checking model-cache disk space and updating model files…", action)
 
     def uninstall_cb(model_id):
         def action():
@@ -201,7 +201,7 @@ def build_dashboard():
       </style>
 
       <div class="brand">
-        <small>PRIVATE NOTEBOOK WORKSPACE · GOOGLE DRIVE STORAGE</small>
+        <small>DRIVE OUTPUTS · TEMPORARY COLAB MODEL CACHE</small>
         <h2>SNAPGASP Studio</h2>
         <div>Image & video generation · one active model · free Colab GPU</div>
       </div>
@@ -312,7 +312,7 @@ def build_dashboard():
           <button onclick="sgCall('unload',[],'manager_status')">Unload active model</button>
         </div>
         <div class="hint">
-          CogVideoX1.5-5B is experimental on a T4. It uses INT8 weight-only quantization for the T5 text encoder, transformer, and VAE, with FP16 activations. T4 support is experimental because the upstream optimized benchmark targets Ampere 8.0+; a T4 is capability 7.5. The install check requires approximately 32 GB of free Google Drive space. Its 9:16 and 1080p outputs are post-processed crops/upscales, not native model output. Wan2.1 T2V 1.3B needs approximately 18 GB of free Google Drive space.
+          Model weights are downloaded to the configured model cache (this notebook uses temporary Colab storage at /content/SNAPGASP-Models), not Google Drive. Check the free disk space before installing: CogVideoX1.5-5B needs about 32 GB and is experimental on a T4; Wan2.1 T2V 1.3B needs about 18 GB. Model files in /content are deleted when the Colab runtime is reset or disconnected, so they must be downloaded again in a new session. Generated images/videos remain saved in Google Drive.
         </div>
         <div class="status" id="{prefix}_manager_status"></div>
       </section>
