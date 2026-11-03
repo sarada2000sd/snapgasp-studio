@@ -8,9 +8,9 @@ A notebook-native AI image/video workspace targeting Google Colab Free and Googl
 2. Select a GPU runtime when one is available.
 3. Run notebook cells from top to bottom. The first cell clones or updates this repository automatically.
 4. Mount Google Drive when prompted.
-5. Open Model Manager. Check free Drive storage before downloading large checkpoints.
+5. The notebook stores generated media in Google Drive and large model weights in temporary Colab storage (`/content/SNAPGASP-Models`). Check the temporary disk's free space before downloading.
 6. Select a model marked Implemented or Experimental, install it, load it, then generate.
-7. Generated media and model caches are saved under `SNAPGASP_DATA_DIR` in Drive.
+7. Generated media is saved under `SNAPGASP_DATA_DIR` in Drive. Model weights in `SNAPGASP_MODEL_DIR` are temporary and must be downloaded again after a new Colab runtime session.
 
 The dashboard uses Colab-native HTML controls and Python callbacks; it does not depend on the third-party ipywidgets renderer. Downloading model weights does not require a GPU; loading and generation do.
 
@@ -40,13 +40,13 @@ Resolution and aspect ratio controls are export/post-processing settings, not a 
 
 ### Wan2.1 T2V 1.3B notes
 
-The official Wan documentation describes the 1.3B text-to-video model as a consumer-GPU option, reports an 8.19 GB VRAM requirement, and recommends 480p because 720p results are less stable. The Diffusers example uses 81 frames at 16 FPS (about five seconds). This SNAPGASP adapter uses FP16, an FP32 VAE, and sequential CPU offload; no T4 performance test has been completed. The checkpoint requires approximately 18 GB of free Google Drive storage. 720p and 1080p options are upscales from the 832x480 source; 9:16 is a centre crop, not native portrait generation.
+The official Wan documentation describes the 1.3B text-to-video model as a consumer-GPU option, reports an 8.19 GB VRAM requirement, and recommends 480p because 720p results are less stable. The Diffusers example uses 81 frames at 16 FPS (about five seconds). This SNAPGASP adapter uses FP16, an FP32 VAE, and sequential CPU offload; no T4 performance test has been completed. The checkpoint requires approximately 18 GB of free space in the configured model-cache filesystem. 720p and 1080p options are upscales from the 832x480 source; 9:16 is a centre crop, not native portrait generation.
 
 ### CogVideoX1.5-5B experimental notes
 
 The upstream model card lists 1360x768 T2V, 81 frames by default, 5 or 10 seconds, and 16 FPS. The optimized low-memory test results are not a guarantee for this Colab T4 setup: the model authors say their tested optimization setup was not tested on non-A100/H100 devices and generally targets Ampere architecture or newer. A T4 is older, so this adapter may fail to load or generate, even when the headline VRAM estimate passes.
 
-This adapter applies INT8 weight-only quantization to the T5 text encoder, transformer, and VAE through Optimum Quanto, with FP16 activations. It is an experimental alternative implementation, not a verified reproduction of the upstream INT8 benchmarks. The Studio shows an architecture warning but allows a best-effort attempt. No FP16 fallback is attempted because it could exceed available memory. The Model Manager checks for approximately 32 GB free Drive space before downloading.
+This adapter applies INT8 weight-only quantization to the T5 text encoder, transformer, and VAE through Optimum Quanto, with FP16 activations. It is an experimental alternative implementation, not a verified reproduction of the upstream INT8 benchmarks. The Studio shows an architecture warning but allows a best-effort attempt. No FP16 fallback is attempted because it could exceed available memory. The Model Manager checks for approximately 32 GB free space in the configured model-cache filesystem before downloading.
 
 ### CogVideoX-2B watermark note
 
@@ -56,7 +56,8 @@ Model memory figures in the catalogue are planning checks, not benchmarks. Actua
 
 ## Storage and privacy
 
-- Model weights and generated media are stored under `SNAPGASP_DATA_DIR` on Google Drive.
+- Generated media and history are stored under `SNAPGASP_DATA_DIR` on Google Drive.
+- Model weights are stored under `SNAPGASP_MODEL_DIR`; the Colab notebook sets this to `/content/SNAPGASP-Models`, which is temporary and is cleared when the runtime is reset or disconnected. Set this variable to another persistent filesystem only when sufficient space is available.
 - No SNAPGASP-hosted server receives prompts or generated files.
 - Never commit model weights, generated private media, Hugging Face tokens, or Drive files to GitHub.
 
