@@ -300,7 +300,7 @@ def build_dashboard():
           <button onclick="sgCall('unload',[],'manager_status')">Unload active model</button>
         </div>
         <div class="hint">
-          CogVideoX1.5-5B is experimental on a T4. It uses INT8 transformer weights with FP16 activations and needs approximately 32 GB of free Google Drive space for installation. Its 9:16 and 1080p outputs are post-processed crops/upscales, not native model output.
+          CogVideoX1.5-5B is experimental on a T4. It uses INT8 weight-only quantization for the T5 text encoder, transformer, and VAE, with FP16 activations. T4 support is experimental because the upstream optimized benchmark targets Ampere 8.0+; a T4 is capability 7.5. The install check requires approximately 32 GB of free Google Drive space. Its 9:16 and 1080p outputs are post-processed crops/upscales, not native model output.
         </div>
         <div class="status" id="{prefix}_manager_status"></div>
       </section>
