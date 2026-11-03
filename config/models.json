@@ -105,6 +105,44 @@
       "recommended_compute_capability": 8
     },
     {
+      "id": "wan21-t2v-13b",
+      "name": "Wan2.1 T2V · 1.3B (FP16 · experimental)",
+      "repo_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "modality": "video",
+      "adapter": "wan21",
+      "state": "experimental",
+      "estimated_min_vram_gb": 8.5,
+      "estimated_min_ram_gb": 10,
+      "estimated_min_disk_gb": 18,
+      "defaults": {
+        "width": 832,
+        "height": 480,
+        "duration_seconds": 5,
+        "frames": 81,
+        "fps": 16,
+        "steps": 30,
+        "guidance": 5
+      },
+      "controls": {
+        "native_resolution": "480p",
+        "export_resolutions": [
+          "360p",
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "durations_seconds": [
+          5
+        ],
+        "fps": 16
+      },
+      "notes": "Official Wan2.1 1.3B T2V Diffusers checkpoint. Official documentation reports about 8.19 GB VRAM and recommends 480p; 720p is less stable. SNAPGASP adapter uses FP16, FP32 VAE, and sequential CPU offload. T4 run not yet tested. Model cache is approximately 17.6 GB; 720p/1080p are export upscales, 9:16 is a centre crop."
+    },
+    {
       "id": "cogvideox-2b",
       "name": "CogVideoX 2B",
       "repo_id": "THUDM/CogVideoX-2b",
