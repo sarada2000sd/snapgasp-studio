@@ -18,7 +18,7 @@ class DiffusersImageAdapter(ModelAdapter):
         if self.pipeline is None: return {}
         try: params=inspect.signature(self.pipeline.__call__).parameters
         except (TypeError,ValueError): params={}
-        return {k:k in params for k in ("prompt","negative_prompt","width","height","num_inference_steps","guidance_scale","generator","max_sequence_length","true_cfg_scale")}
+        return {k:k in params for k in ("prompt","negative_prompt","width","height","num_inference_steps","guidance_scale","generator","max_sequence_length","true_cfg_scale","callback_on_step_end","callback_on_step_end_tensor_inputs")}
     def generate(self,prompt,negative_prompt="",width=1024,height=1024,steps=4,guidance=0,seed=0,progress_callback=None):
         if self.pipeline is None: raise RuntimeError("Load image model first.")
         total_steps=int(steps)
