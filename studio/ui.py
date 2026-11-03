@@ -5,7 +5,7 @@ from IPython.display import display, HTML, Video, Image
 from .catalog import load_catalog
 from .controller import StudioController
 from .manager import install_model, uninstall_model, is_installed, output_dir
-from .runtime import inspect_runtime
+from .runtime import inspect_runtime, can_attempt_model
 
 CSS = """
 <style>
@@ -58,11 +58,11 @@ def build_dashboard():
     vid_model=w.Dropdown(options=[(m["name"]+" · "+m["state"],m["id"]) for m in vm],description="Model")
     vid_prompt=w.Textarea(description="Prompt",placeholder="Describe the scene and motion…",layout=w.Layout(width="100%",height="90px"))
     vid_neg=w.Textarea(description="Negative",layout=w.Layout(width="100%",height="55px"))
-    vid_w=w.Dropdown(options=[480,640,720],value=480,description="Width")
-    vid_h=w.Dropdown(options=[320,384,480],value=320,description="Height")
-    vid_frames=w.Dropdown(options=[17,25,49],value=17,description="Frames")
-    vid_fps=w.Dropdown(options=[8,12],value=8,description="FPS")
-    vid_steps=w.IntSlider(value=20,min=10,max=40,description="Steps",continuous_update=False)
+    vid_w=w.Dropdown(options=[720],value=720,description="Width")
+    vid_h=w.Dropdown(options=[480],value=480,description="Height")
+    vid_frames=w.Dropdown(options=[49],value=49,description="Frames")
+    vid_fps=w.Dropdown(options=[8],value=8,description="FPS")
+    vid_steps=w.IntSlider(value=30,min=30,max=50,step=10,description="Steps",continuous_update=False)
     vid_seed=w.IntText(value=12345,description="Seed")
     vid_load=w.Button(description="Load model",button_style="warning")
     vid_go=w.Button(description="Generate video",button_style="success")
@@ -97,8 +97,13 @@ def build_dashboard():
             mgr_status.clear_output()
             spec=by_id[mgr_model.value]
             try:
-                if action=="install": print(install_model(spec))
-                elif action=="update": print(install_model(spec,force=True))
+                if action in ("install","update"):
+                    if spec.get("state") != "implemented":
+                        raise RuntimeError("This model is listed as planned; its adapter is not implemented yet.")
+                    allowed, reason = can_attempt_model(spec, inspect_runtime())
+                    if not allowed: raise RuntimeError(reason)
+                    print(reason)
+                    print(install_model(spec, force=(action=="update")))
                 elif action=="remove":
                     if controller.active_model_id==spec["id"]: controller.unload()
                     print(uninstall_model(spec["id"]))
