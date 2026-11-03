@@ -1,46 +1,45 @@
 # SNAPGASP Studio
 
-A notebook-native, free-tier-first workspace for open-weight image and video generation. The first runtime target is Google Colab with a local-in-notebook control panel and Google Drive storage.
-
-> Colab Free GPU access, GPU type, VRAM, quotas, and session duration are not guaranteed. The app inspects the live runtime and validates model compatibility. No public Gradio tunnel or paid GPU service is used.
-
-## Included
-
-- Notebook-native control panel using ipywidgets.
-- Live GPU / VRAM inspection.
-- One-model-at-a-time model lifecycle.
-- Google Drive cache for weights, generated media, and history.
-- Hugging Face model install, update, and uninstall controls.
-- Capability inspection against the selected pipeline's actual call signature.
-- Diffusers image adapters and CogVideoX 2B text-to-video adapter.
-- A catalogue for future adapters, clearly marked as planned until implemented and tested.
+A notebook-native AI image/video generation workspace targeting Google Colab Free and Google Drive. It does not start a public Gradio tunnel or depend on a paid GPU server.
 
 ## Quick start
 
-1. Open `SNAPGASP_Studio_Colab.ipynb` in Google Colab.
-2. Upload the `snapgasp-studio.zip` source archive when prompted.
-3. Run the notebook cells in order and mount Google Drive.
-4. In Model Manager, install a compatible model, load it, then generate.
+1. Open [SNAPGASP_Studio_Colab.ipynb](SNAPGASP_Studio_Colab.ipynb) in Google Colab.
+2. Select a GPU runtime when one is available.
+3. Run notebook cells from top to bottom. The first cell clones or updates this repository automatically.
+4. Mount Google Drive when prompted.
+5. Open Model Manager. Choose a model marked as implemented and compatible with the detected GPU, then install and load it.
+6. Generate media. Outputs and model cache are saved to your Drive folder.
 
-The notebook runs controls inside Colab; it does not create a public tunnel or an always-on website. Free GPU capacity is variable.
+## Current T4 guidance
 
-## Models in this starter
+The first video model to try on a Colab T4 is CogVideoX-2B, using the Diffusers low-memory path. The upstream Diffusers guide reports approximately 12.5 GB VRAM for its FP16 single-GPU inference setup with optimizations. A T4 runtime reporting about 14.6 GB has limited headroom; generation may still fail due to memory, package versions, runtime availability, or session limits. The app checks estimated GPU and system RAM before allowing an install/load attempt.
 
-| Model | State |
-|---|---|
-| Qwen Image | Diffusers image adapter |
-| FLUX.1 Schnell | Diffusers image adapter |
-| Stable Diffusion 3.5 Medium | Diffusers image adapter; license terms apply |
-| CogVideoX 2B | Text-to-video adapter |
-| Wan 2.2 TI2V 5B | Planned; adapter not yet implemented |
-| HunyuanVideo 1.5 | Planned; adapter not yet implemented |
+CogVideoX-2B is configured here for 720x480, 49 frames, 8 FPS. Do not change these until the adapter exposes additional verified modes.
 
-A catalogue entry is not a promise that a model fits a particular Colab GPU. Large models may fail because of GPU VRAM, system RAM, disk, package compatibility, or upstream restrictions.
+## Model catalogue
 
-## Data and privacy
+| Model | Adapter | Notes |
+|---|---|---|
+| Qwen Image | Diffusers | High memory; not a fit for the current T4/RAM combination |
+| FLUX.1 Schnell | Diffusers | Large host-memory requirement; not recommended for current Colab RAM |
+| Stable Diffusion 3.5 Medium | Diffusers | Estimated requirement exceeds current T4 |
+| CogVideoX 2B | Diffusers | First video model to test on T4 with CPU offload and VAE slicing/tiling |
+| Wan 2.2 TI2V 5B | Planned | Adapter not implemented |
+| HunyuanVideo 1.5 | Planned | Adapter not implemented |
 
-Weights and outputs are stored in the Google Drive folder set by `SNAPGASP_DATA_DIR`. Prompts and generated files are not uploaded to a SNAPGASP server. Do not commit model weights, tokens, generated private media, or Drive contents to GitHub.
+The catalogue is not a guarantee of compatibility. Model memory estimates are conservative guidance, not benchmark results. Free Colab GPU availability, GPU model, RAM, quotas, and session duration are not guaranteed.
+
+## Storage and privacy
+
+- Model weights and generated media are stored under `SNAPGASP_DATA_DIR` on Google Drive.
+- No SNAPGASP-hosted server receives prompts or generated files.
+- Never commit model weights, generated private media, Hugging Face tokens, or Drive files to GitHub.
 
 ## Licensing
 
-The SNAPGASP Studio application code is MIT-licensed. Model weights, upstream code, datasets, and outputs remain subject to their own licenses and terms. Read each official model card before use, especially commercial use.
+This repository's application code is MIT-licensed. Model weights, upstream code, datasets, and outputs remain subject to their own licenses and terms. Review each official model card and license before use, especially for commercial/stock distribution.
+
+## Local checks
+
+Run `python scripts/selfcheck.py` to check the model catalogue without downloading model weights.
