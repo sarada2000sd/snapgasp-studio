@@ -68,7 +68,7 @@
     },
     {
       "id": "cogvideox15-5b",
-      "name": "CogVideoX 1.5 · 5B (INT8 transformer experimental)",
+      "name": "CogVideoX 1.5 · 5B (INT8 quantized · experimental)",
       "repo_id": "zai-org/CogVideoX1.5-5B",
       "modality": "video",
       "adapter": "cogvideox15",
