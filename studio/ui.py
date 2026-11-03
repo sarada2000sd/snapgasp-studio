@@ -23,12 +23,16 @@ def build_dashboard():
         selected = " selected" if model["id"] == "wan21-t2v-13b" else ""
         return f'<option value="{html.escape(model["id"])}"{selected}>{html.escape(model["name"] + state)}</option>'
 
-    def check_spec(model_id):
+    def check_model(model_id):
         if model_id not in by_id:
             raise ValueError("Unknown model selection.")
         spec = by_id[model_id]
         if spec.get("state") not in ("implemented", "experimental") or not spec.get("adapter"):
             raise RuntimeError("This model is marked Planned. Its adapter is not implemented yet.")
+        return spec
+
+    def check_spec(model_id):
+        spec = check_model(model_id)
         allowed, reason = can_attempt_model(spec, inspect_runtime())
         if not allowed:
             raise RuntimeError(reason)
@@ -45,16 +49,16 @@ def build_dashboard():
 
     def install_cb(model_id):
         def action():
-            spec, reason = check_spec(model_id)
+            spec = check_model(model_id)
             path = install_model(spec)
-            return f"{reason}\\nModel installed in Google Drive: {path}"
+            return f"Model installed in Google Drive: {path}\\nGPU is only required for loading and generation."
         run_status(prefix + "_manager_status", "Checking Drive space and downloading model files…", action)
 
     def update_cb(model_id):
         def action():
-            spec, reason = check_spec(model_id)
+            spec = check_model(model_id)
             path = install_model(spec, force=True)
-            return f"{reason}\\nModel updated in Google Drive: {path}"
+            return f"Model updated in Google Drive: {path}\\nGPU is only required for loading and generation."
         run_status(prefix + "_manager_status", "Checking Drive space and updating model files…", action)
 
     def uninstall_cb(model_id):
