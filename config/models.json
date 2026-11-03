@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "id": "qwen-image",
+      "name": "Qwen Image",
+      "repo_id": "Qwen/Qwen-Image",
+      "modality": "image",
+      "adapter": "diffusers_image",
+      "state": "implemented",
+      "estimated_min_vram_gb": 18,
+      "defaults": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 28,
+        "guidance": 4
+      }
+    },
+    {
+      "id": "flux-schnell",
+      "name": "FLUX.1 Schnell",
+      "repo_id": "black-forest-labs/FLUX.1-schnell",
+      "modality": "image",
+      "adapter": "diffusers_image",
+      "state": "implemented",
+      "estimated_min_vram_gb": 12,
+      "defaults": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 4,
+        "guidance": 0
+      }
+    },
+    {
+      "id": "sd35-medium",
+      "name": "Stable Diffusion 3.5 Medium",
+      "repo_id": "stabilityai/stable-diffusion-3.5-medium",
+      "modality": "image",
+      "adapter": "diffusers_image",
+      "state": "implemented",
+      "estimated_min_vram_gb": 16,
+      "defaults": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 28,
+        "guidance": 4.5
+      }
+    },
+    {
+      "id": "cogvideox-2b",
+      "name": "CogVideoX 2B",
+      "repo_id": "THUDM/CogVideoX-2b",
+      "modality": "video",
+      "adapter": "cogvideox",
+      "state": "implemented",
+      "estimated_min_vram_gb": 10,
+      "defaults": {
+        "width": 720,
+        "height": 480,
+        "frames": 49,
+        "fps": 8,
+        "steps": 30,
+        "guidance": 6
+      }
+    },
+    {
+      "id": "wan22-ti2v-5b",
+      "name": "Wan 2.2 TI2V 5B",
+      "repo_id": "Wan-AI/Wan2.2-TI2V-5B",
+      "modality": "video",
+      "adapter": null,
+      "state": "planned",
+      "estimated_min_vram_gb": 16,
+      "defaults": {}
+    },
+    {
+      "id": "hunyuan-video-15",
+      "name": "HunyuanVideo 1.5",
+      "repo_id": "tencent/HunyuanVideo-1.5",
+      "modality": "video",
+      "adapter": null,
+      "state": "planned",
+      "estimated_min_vram_gb": 16,
+      "defaults": {}
+    }
+  ]
+}
