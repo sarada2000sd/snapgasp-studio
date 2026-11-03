@@ -20,7 +20,7 @@ def build_dashboard():
 
     def opt(model):
         state = "" if model.get("state") == "implemented" else " · EXPERIMENTAL" if model.get("state") == "experimental" else " · planned"
-        selected = " selected" if model["id"] == "cogvideox15-5b" else ""
+        selected = " selected" if model["id"] == "wan21-t2v-13b" else ""
         return f'<option value="{html.escape(model["id"])}"{selected}>{html.escape(model["name"] + state)}</option>'
 
     def check_spec(model_id):
@@ -119,6 +119,13 @@ def build_dashboard():
                     width=720, height=480, frames=49, fps=8,
                     steps=int(steps), guidance=float(guidance), seed=int(seed),
                     resolution=str(resolution), aspect_ratio=str(aspect_ratio),
+                    progress_callback=panel,
+                )
+            elif model_id == "wan21-t2v-13b":
+                result = adapter.generate(
+                    prompt=str(prompt), negative_prompt=str(negative),
+                    resolution=str(resolution), aspect_ratio=str(aspect_ratio),
+                    steps=int(steps), guidance=float(guidance), seed=int(seed),
                     progress_callback=panel,
                 )
             else:
@@ -237,7 +244,8 @@ def build_dashboard():
             <label>Resolution</label>
             <select id="{prefix}_vi_resolution" onchange="sgUpdateVideoNote()">
               <option value="360p">360p · smaller file</option>
-              <option value="720p" selected>720p · HD</option>
+              <option value="480p" selected>480p · Native for Wan2.1</option>
+              <option value="720p">720p · Upscale for Wan2.1</option>
               <option value="1080p">1080p · upscale</option>
             </select>
           </div>
@@ -300,7 +308,7 @@ def build_dashboard():
           <button onclick="sgCall('unload',[],'manager_status')">Unload active model</button>
         </div>
         <div class="hint">
-          CogVideoX1.5-5B is experimental on a T4. It uses INT8 weight-only quantization for the T5 text encoder, transformer, and VAE, with FP16 activations. T4 support is experimental because the upstream optimized benchmark targets Ampere 8.0+; a T4 is capability 7.5. The install check requires approximately 32 GB of free Google Drive space. Its 9:16 and 1080p outputs are post-processed crops/upscales, not native model output.
+          CogVideoX1.5-5B is experimental on a T4. It uses INT8 weight-only quantization for the T5 text encoder, transformer, and VAE, with FP16 activations. T4 support is experimental because the upstream optimized benchmark targets Ampere 8.0+; a T4 is capability 7.5. The install check requires approximately 32 GB of free Google Drive space. Its 9:16 and 1080p outputs are post-processed crops/upscales, not native model output. Wan2.1 T2V 1.3B needs approximately 18 GB of free Google Drive space.
         </div>
         <div class="status" id="{prefix}_manager_status"></div>
       </section>
@@ -345,6 +353,10 @@ def build_dashboard():
           d.innerHTML='<option value="5">5 seconds</option><option value="10">10 seconds</option>';
           d.value="5";
           note.textContent="CogVideoX1.5-5B: native 1360×768 landscape, 16 FPS, 5 or 10 seconds. 1080p is upscaled; 9:16 is centre-cropped.";
+        }}else if(model==="wan21-t2v-13b"){{
+          d.innerHTML='<option value="5">5 seconds (native model length)</option>';
+          d.value="5";
+          note.textContent="Wan2.1 T2V 1.3B: native 832×480, 81 frames, 16 FPS, about 5 seconds. 720p/1080p are upscales; 9:16 is centre-cropped.";
         }}else{{
           d.innerHTML='<option value="6">6 seconds (fixed by model)</option>';
           d.value="6";
@@ -359,9 +371,11 @@ def build_dashboard():
         const note=document.getElementById("{prefix}_vi_note");
         let messages=[];
         if(model==="cogvideox15-5b") messages.push("Model renders at 1360×768.");
+        else if(model==="wan21-t2v-13b") messages.push("Model renders at native 832×480.");
         else messages.push("Model renders at 720×480.");
         if(res==="1080p") messages.push("1080p is an upscale; it adds no new AI detail.");
-        else if(res==="720p") messages.push("720p is resized from the model's native render.");
+        else if(res==="480p") messages.push("480p is the Wan2.1 model's native output size.");
+        else if(res==="720p") messages.push("720p is resized/upscaled from the model's native render.");
         else messages.push("360p is downscaled to reduce file size.");
         if(ratio==="9:16") messages.push("Vertical output is a centre crop; keep the main subject near the centre.");
         else messages.push("Landscape output uses 16:9.");
