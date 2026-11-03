@@ -12,36 +12,45 @@ A notebook-native AI image/video workspace targeting Google Colab Free and Googl
 6. Select a model marked Implemented or Experimental, install it, load it, then generate.
 7. Generated media and model caches are saved under `SNAPGASP_DATA_DIR` in Drive.
 
-The dashboard uses Colab-native HTML controls and Python callbacks; it does not depend on the third-party ipywidgets renderer.
+The dashboard uses Colab-native HTML controls and Python callbacks; it does not depend on the third-party ipywidgets renderer. Downloading model weights does not require a GPU; loading and generation do.
 
 ## Video controls and progress
 
-- Resolution: 360p, 720p, or 1080p export.
+- Resolution exports: 360p, 480p, 720p, or 1080p where available.
 - Aspect ratio: 16:9 landscape or 9:16 centre crop.
-- Duration: dynamic per model.
+- Duration options are model-dependent.
 - Steps, guidance, and seed are shown in plain language.
-- The generation panel reports preparation, real denoising-step percentage, encoding, Completed, or Failed.
+- The generation panel reports preparation, denoising-step percentage, encoding, Completed, or Failed.
 
-Resolution and aspect ratio controls are export/post-processing settings, not a claim that every model generates at those native dimensions. For CogVideoX1.5-5B, the native T2V source is 1360x768. 1080p is an upscale and 9:16 is a centre crop; neither creates extra model detail or native portrait composition. CogVideoX-2B's source is 720x480, 49 frames, 8 FPS, about 6 seconds; the same export presets are applied after generation.
+Resolution and aspect ratio controls are export/post-processing settings, not a claim that every model generates at those native dimensions.
 
 ## Model catalogue
 
 | Model | State | Notes |
 |---|---|---|
-| Stable Diffusion 1.5 | Implemented | First image test candidate on a 14.6 GB T4; CreativeML OpenRAIL-M terms apply |
+| Stable Diffusion 1.5 | Implemented | Image generation test candidate; CreativeML OpenRAIL-M terms apply |
 | FLUX.1 Schnell | Implemented | High host RAM needs; not recommended for a 12.7 GB Colab RAM session |
 | Qwen Image | Implemented | Estimated hardware needs exceed the current T4/RAM combination |
 | Stable Diffusion 3.5 Medium | Implemented | Estimated hardware needs exceed the current T4/RAM combination |
-| CogVideoX1.5-5B | Experimental | INT8 weight-only quantization for T5 text encoder, transformer, and VAE via Optimum Quanto + FP16 activations; T4 path is experimental |
+| Wan2.1 T2V 1.3B | Experimental | FP16 + sequential CPU offload; native 832x480, 81 frames, 16 FPS, ~5 seconds; T4 run not yet tested |
+| CogVideoX1.5-5B | Experimental | INT8 weights for T5 text encoder, transformer, and VAE via Optimum Quanto + FP16 activations; T4 path experimental |
 | CogVideoX-2B | Implemented | FP16 T2V, 720x480, 49 frames, 8 FPS |
 | Wan 2.2 TI2V 5B | Planned | Adapter not implemented |
 | HunyuanVideo 1.5 | Planned | Adapter not implemented |
 
+### Wan2.1 T2V 1.3B notes
+
+The official Wan documentation describes the 1.3B text-to-video model as a consumer-GPU option, reports an 8.19 GB VRAM requirement, and recommends 480p because 720p results are less stable. The Diffusers example uses 81 frames at 16 FPS (about five seconds). This SNAPGASP adapter uses FP16, an FP32 VAE, and sequential CPU offload; no T4 performance test has been completed. The checkpoint requires approximately 18 GB of free Google Drive storage. 720p and 1080p options are upscales from the 832x480 source; 9:16 is a centre crop, not native portrait generation.
+
 ### CogVideoX1.5-5B experimental notes
 
-The upstream model card lists 1360x768 T2V, 81 frames by default, 5 or 10 seconds, and 16 FPS. It documents quantization options that can lower memory needs. The optimized low-memory test results are not a guarantee for this Colab T4 setup: the model authors say their tested optimization setup was not tested on non-A100/H100 devices and generally targets NVIDIA Ampere architecture or newer. A T4 is older, so this adapter may fail to load or generate, even when the headline VRAM estimate passes.
+The upstream model card lists 1360x768 T2V, 81 frames by default, 5 or 10 seconds, and 16 FPS. The optimized low-memory test results are not a guarantee for this Colab T4 setup: the model authors say their tested optimization setup was not tested on non-A100/H100 devices and generally targets Ampere architecture or newer. A T4 is older, so this adapter may fail to load or generate, even when the headline VRAM estimate passes.
 
-This adapter applies INT8 weight-only quantization to the T5 text encoder, transformer, and VAE through Optimum Quanto, with FP16 activations. It is an experimental alternative implementation, not a verified reproduction of the upstream INT8 benchmarks. The upstream authors say their optimized low-memory setup was not tested on non-A100/H100 devices and generally targets Ampere 8.0+; a Tesla T4 is Turing capability 7.5. The Studio therefore shows an architecture warning but allows a best-effort attempt. No FP16 fallback is attempted because it could exceed available memory. The Model Manager checks for approximately 32 GB free Drive space before downloading; this is a safety estimate, not an exact upstream file-size guarantee.
+This adapter applies INT8 weight-only quantization to the T5 text encoder, transformer, and VAE through Optimum Quanto, with FP16 activations. It is an experimental alternative implementation, not a verified reproduction of the upstream INT8 benchmarks. The Studio shows an architecture warning but allows a best-effort attempt. No FP16 fallback is attempted because it could exceed available memory. The Model Manager checks for approximately 32 GB free Drive space before downloading.
+
+### CogVideoX-2B watermark note
+
+An issue in the upstream CogVideo repository reports a third-party “Pond5” watermark in videos generated with CogVideo 2B. It is a user report, not a formal guarantee that every checkpoint/version will show it; it is one reason SNAPGASP treats this model as a limited test candidate rather than the quality target.
 
 Model memory figures in the catalogue are planning checks, not benchmarks. Actual peak GPU/RAM use may be higher. Free Colab GPU availability, GPU model, RAM, disk, quotas, and session duration are not guaranteed.
 
@@ -53,4 +62,4 @@ Model memory figures in the catalogue are planning checks, not benchmarks. Actua
 
 ## Licensing
 
-This repository's application code is MIT-licensed. Model weights, upstream code, datasets, and outputs remain subject to their own licenses and terms. Review each official model card and license before commercial or stock use. CogVideoX is released under its upstream CogVideoX license; Stable Diffusion 1.5 identifies CreativeML OpenRAIL-M. See [NOTICES.md](NOTICES.md).
+This repository's application code is MIT-licensed. Model weights, upstream code, datasets, and outputs remain subject to their own licenses and terms. Wan2.1 T2V 1.3B is Apache 2.0; review the license and comply with its notice requirements. CogVideoX, FLUX, Qwen Image, and Stable Diffusion each have their own terms. See [NOTICES.md](NOTICES.md).
