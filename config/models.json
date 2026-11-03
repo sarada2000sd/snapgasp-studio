@@ -101,7 +101,8 @@
         ],
         "fps": 16
       },
-      "notes": "Experimental T4 path. INT8 weight-only transformer quantization via Optimum Quanto; FP16 activations. Source generation uses native 1360x768. 360p/720p/1080p are export sizes; 1080p is upscaled, and 9:16 is centre-cropped from landscape. T4 has not been officially benchmarked for this path."
+      "notes": "Experimental T4 path. INT8 weight-only transformer quantization via Optimum Quanto; FP16 activations. Source generation uses native 1360x768. 360p/720p/1080p are export sizes; 1080p is upscaled, and 9:16 is centre-cropped from landscape. T4 has not been officially benchmarked for this path. Official optimized benchmark notes target Ampere 8.0+; T4 compute capability 7.5 is experimental.",
+      "recommended_compute_capability": 8
     },
     {
       "id": "cogvideox-2b",
