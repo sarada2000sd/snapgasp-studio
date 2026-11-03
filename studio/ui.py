@@ -19,7 +19,8 @@ def build_dashboard():
 
     def opt(model):
         state = "" if model.get("state") == "implemented" else " · planned"
-        return f'<option value="{html.escape(model["id"])}">{html.escape(model["name"] + state)}</option>'
+        selected = " selected" if model["id"] == "cogvideox-2b" else ""
+        return f'<option value="{html.escape(model["id"])}"{selected}>{html.escape(model["name"] + state)}</option>'
 
     def status(target, message, ok=False):
         from google.colab import output as colab_output
