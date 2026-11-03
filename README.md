@@ -32,7 +32,7 @@ Resolution and aspect ratio controls are export/post-processing settings, not a 
 | FLUX.1 Schnell | Implemented | High host RAM needs; not recommended for a 12.7 GB Colab RAM session |
 | Qwen Image | Implemented | Estimated hardware needs exceed the current T4/RAM combination |
 | Stable Diffusion 3.5 Medium | Implemented | Estimated hardware needs exceed the current T4/RAM combination |
-| CogVideoX1.5-5B | Experimental | INT8 transformer weights via Optimum Quanto + FP16 activations; T4 path is unbenchmarked |
+| CogVideoX1.5-5B | Experimental | INT8 weight-only quantization for T5 text encoder, transformer, and VAE via Optimum Quanto + FP16 activations; T4 path is experimental |
 | CogVideoX-2B | Implemented | FP16 T2V, 720x480, 49 frames, 8 FPS |
 | Wan 2.2 TI2V 5B | Planned | Adapter not implemented |
 | HunyuanVideo 1.5 | Planned | Adapter not implemented |
@@ -41,7 +41,7 @@ Resolution and aspect ratio controls are export/post-processing settings, not a 
 
 The upstream model card lists 1360x768 T2V, 81 frames by default, 5 or 10 seconds, and 16 FPS. It documents quantization options that can lower memory needs. The optimized low-memory test results are not a guarantee for this Colab T4 setup: the model authors say their tested optimization setup was not tested on non-A100/H100 devices and generally targets NVIDIA Ampere architecture or newer. A T4 is older, so this adapter may fail to load or generate, even when the headline VRAM estimate passes.
 
-This adapter quantizes the transformer weights to INT8 with Optimum Quanto, while leaving activations and other pipeline components in FP16. It is not the complete all-components INT8 recipe shown by the upstream project. No FP16 fallback is attempted because it could exceed the available memory. The Model Manager checks for approximately 32 GB free Drive space before downloading; this is a safety estimate, not an exact upstream file-size guarantee.
+This adapter applies INT8 weight-only quantization to the T5 text encoder, transformer, and VAE through Optimum Quanto, with FP16 activations. It is an experimental alternative implementation, not a verified reproduction of the upstream INT8 benchmarks. The upstream authors say their optimized low-memory setup was not tested on non-A100/H100 devices and generally targets Ampere 8.0+; a Tesla T4 is Turing capability 7.5. The Studio therefore shows an architecture warning but allows a best-effort attempt. No FP16 fallback is attempted because it could exceed available memory. The Model Manager checks for approximately 32 GB free Drive space before downloading; this is a safety estimate, not an exact upstream file-size guarantee.
 
 Model memory figures in the catalogue are planning checks, not benchmarks. Actual peak GPU/RAM use may be higher. Free Colab GPU availability, GPU model, RAM, disk, quotas, and session duration are not guaranteed.
 
