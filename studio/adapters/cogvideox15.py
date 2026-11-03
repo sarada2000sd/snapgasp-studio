@@ -1,12 +1,17 @@
 import inspect
 import time
 import uuid
-from pathlib import Path
 
 import torch
 from PIL import ImageOps
-from diffusers import CogVideoXPipeline, CogVideoXTransformer3DModel, QuantoConfig
+from diffusers import (
+    AutoencoderKLCogVideoX,
+    CogVideoXPipeline,
+    CogVideoXTransformer3DModel,
+    QuantoConfig as DiffusersQuantoConfig,
+)
 from diffusers.utils import export_to_video
+from transformers import T5EncoderModel, QuantoConfig as TransformersQuantoConfig
 
 from .base import ModelAdapter
 from ..manager import output_dir
@@ -15,9 +20,9 @@ from ..manager import output_dir
 class CogVideoX15Adapter(ModelAdapter):
     """Experimental CogVideoX1.5-5B T2V path for low-memory Colab GPUs.
 
-    The main transformer is quantized to INT8 weights with Quanto. Activations
-    remain FP16. This is not the complete INT8 recipe published in the model
-    card, and the T4 path has not been benchmarked by the upstream authors.
+    INT8 weight-only quantization is applied separately to the T5 text encoder,
+    transformer, and VAE. Activations remain FP16. This is an experimental
+    Quanto path; upstream low-memory benchmarks are not a T4 benchmark.
     """
 
     def load(self, runtime):
@@ -25,35 +30,65 @@ class CogVideoX15Adapter(ModelAdapter):
             raise RuntimeError("A CUDA GPU is required for CogVideoX1.5-5B.")
         free_gb = torch.cuda.mem_get_info(0)[0] / (1024 ** 3)
         if free_gb < 9:
-            raise RuntimeError(f"Only {free_gb:.1f} GB GPU memory is free. Unload other GPU work and retry.")
+            raise RuntimeError(
+                f"Only {free_gb:.1f} GB GPU memory is free. "
+                "Unload other GPU work and retry."
+            )
+
         try:
+            # Quantize components as they load to avoid keeping the full
+            # FP16 pipeline resident in host RAM at the same time.
+            text_encoder = T5EncoderModel.from_pretrained(
+                str(self.local_path),
+                subfolder="text_encoder",
+                torch_dtype=torch.float16,
+                low_cpu_mem_usage=True,
+                quantization_config=TransformersQuantoConfig(weights="int8"),
+            )
             transformer = CogVideoXTransformer3DModel.from_pretrained(
                 str(self.local_path),
                 subfolder="transformer",
                 torch_dtype=torch.float16,
                 low_cpu_mem_usage=True,
-                quantization_config=QuantoConfig(weights_dtype="int8"),
+                quantization_config=DiffusersQuantoConfig(weights_dtype="int8"),
+            )
+            vae = AutoencoderKLCogVideoX.from_pretrained(
+                str(self.local_path),
+                subfolder="vae",
+                torch_dtype=torch.float16,
+                low_cpu_mem_usage=True,
+                quantization_config=DiffusersQuantoConfig(weights_dtype="int8"),
             )
         except Exception as exc:
             raise RuntimeError(
-                "INT8 transformer quantization could not be initialized on this Colab runtime. "
-                "No FP16 fallback was attempted because it may exceed the available RAM/VRAM. "
+                "INT8 quantization could not be initialized for one of the "
+                "CogVideoX1.5-5B components on this Colab runtime. No FP16 "
+                "fallback was attempted because it may exceed available memory. "
                 f"Details: {type(exc).__name__}: {exc}"
             ) from exc
 
-        self.pipeline = CogVideoXPipeline.from_pretrained(
-            str(self.local_path),
-            transformer=transformer,
-            torch_dtype=torch.float16,
-            low_cpu_mem_usage=True,
-        )
-        self.pipeline.enable_sequential_cpu_offload()
-        if hasattr(self.pipeline, "vae"):
-            if hasattr(self.pipeline.vae, "enable_slicing"):
-                self.pipeline.vae.enable_slicing()
-            if hasattr(self.pipeline.vae, "enable_tiling"):
-                self.pipeline.vae.enable_tiling()
-        self.quantization_label = "INT8 transformer weights + FP16 activations (experimental)"
+        try:
+            self.pipeline = CogVideoXPipeline.from_pretrained(
+                str(self.local_path),
+                text_encoder=text_encoder,
+                transformer=transformer,
+                vae=vae,
+                torch_dtype=torch.float16,
+                low_cpu_mem_usage=True,
+            )
+            self.pipeline.enable_sequential_cpu_offload()
+            if hasattr(self.pipeline, "vae"):
+                if hasattr(self.pipeline.vae, "enable_slicing"):
+                    self.pipeline.vae.enable_slicing()
+                if hasattr(self.pipeline.vae, "enable_tiling"):
+                    self.pipeline.vae.enable_tiling()
+        except Exception as exc:
+            raise RuntimeError(
+                "Could not assemble/offload the quantized CogVideoX1.5 pipeline. "
+                f"Details: {type(exc).__name__}: {exc}"
+            ) from exc
+
+        self.quantization_label = "INT8 weights: T5 + transformer + VAE; FP16 activations"
 
     def capabilities(self):
         if self.pipeline is None:
@@ -93,8 +128,8 @@ class CogVideoX15Adapter(ModelAdapter):
         if aspect_ratio not in ("16:9", "9:16"):
             raise ValueError("Choose 16:9 or 9:16.")
 
-        # Official T2V checkpoint is trained for 1360x768. Output sizing is
-        # applied after generation; it does not change the model's native render.
+        # Official T2V checkpoint is trained for 1360x768. Export resizing/crop
+        # is applied after generation and does not change model-native quality.
         frames = 81 if duration_seconds == 5 else 161
         width, height = self._target_size(resolution, aspect_ratio)
         total_steps = int(steps)
@@ -102,7 +137,9 @@ class CogVideoX15Adapter(ModelAdapter):
         if progress_callback:
             progress_callback.update(2, "Preparing", "Preparing prompt and latent video frames…")
         if not self.capabilities().get("callback_on_step_end"):
-            raise RuntimeError("Installed Diffusers build does not expose callback_on_step_end; update dependencies.")
+            raise RuntimeError(
+                "Installed Diffusers build does not expose callback_on_step_end; update dependencies."
+            )
         callback = progress_callback.step_callback(total_steps) if progress_callback else None
 
         kwargs = {
