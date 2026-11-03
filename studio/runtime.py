@@ -3,10 +3,13 @@ def inspect_runtime():
     info = {"platform": platform.platform(), "python": sys.version.split()[0],
             "cuda_available": False, "gpu_name": "No CUDA GPU detected",
             "gpu_total_gb": 0.0, "gpu_free_gb": 0.0, "system_ram_gb": 0.0,
+            "system_ram_available_gb": 0.0,
             "data_dir": os.environ.get("SNAPGASP_DATA_DIR", "./snapgasp-data")}
     try:
         import psutil
-        info["system_ram_gb"] = round(psutil.virtual_memory().total / 2**30, 1)
+        mem=psutil.virtual_memory()
+        info["system_ram_gb"] = round(mem.total / 2**30, 1)
+        info["system_ram_available_gb"] = round(mem.available / 2**30, 1)
     except Exception: pass
     try:
         import torch
@@ -23,6 +26,10 @@ def can_attempt_model(spec, runtime):
     if spec.get("state") != "implemented" or not spec.get("adapter"):
         return False, "Adapter not implemented."
     if not runtime.get("cuda_available"): return False, "Attach a CUDA GPU first."
-    need, total = float(spec.get("estimated_min_vram_gb",0)), float(runtime.get("gpu_total_gb",0))
-    warning = f"Estimated need {need:g} GB; GPU has {total:g} GB. Offload may still fail." if total < need else "Best-effort hardware check only."
-    return True, warning
+    need_gpu, total_gpu = float(spec.get("estimated_min_vram_gb",0)), float(runtime.get("gpu_total_gb",0))
+    need_ram, total_ram = float(spec.get("estimated_min_ram_gb",0)), float(runtime.get("system_ram_gb",0))
+    reasons=[]
+    if total_gpu < need_gpu: reasons.append(f"estimated minimum VRAM {need_gpu:g} GB; detected {total_gpu:g} GB")
+    if total_ram < need_ram: reasons.append(f"estimated minimum system RAM {need_ram:g} GB; detected {total_ram:g} GB")
+    if reasons: return False, "Hardware check: " + "; ".join(reasons) + "."
+    return True, "Hardware check passed as a best-effort estimate; actual peak memory can still be higher."
