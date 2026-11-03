@@ -1,6 +1,7 @@
 from .adapters.diffusers_image import DiffusersImageAdapter
 from .adapters.cogvideox import CogVideoXAdapter
 from .adapters.cogvideox15 import CogVideoX15Adapter
+from .adapters.wan21 import Wan21T2V13BAdapter
 from .manager import is_installed,model_dir
 from .runtime import inspect_runtime,can_attempt_model
 
@@ -13,7 +14,7 @@ class StudioController:
         allowed,msg=can_attempt_model(spec,runtime)
         if not allowed: raise RuntimeError(msg)
         if not is_installed(spec["id"]): raise RuntimeError("Install model first in Model Manager.")
-        cls={"diffusers_image":DiffusersImageAdapter,"cogvideox":CogVideoXAdapter,"cogvideox15":CogVideoX15Adapter}.get(spec.get("adapter"))
+        cls={"diffusers_image":DiffusersImageAdapter,"cogvideox":CogVideoXAdapter,"cogvideox15":CogVideoX15Adapter,"wan21":Wan21T2V13BAdapter}.get(spec.get("adapter"))
         if cls is None: raise RuntimeError("No adapter for this model.")
         adapter=cls(spec,model_dir(spec["id"]))
         adapter.load(runtime)
