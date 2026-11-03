@@ -9,9 +9,11 @@ class ColabProgress:
         self.target_id = target_id
         self.display_id = "sg-progress-" + uuid.uuid4().hex
         self.started = False
+        self.percent = 0
 
     def update(self, percent, state, detail=""):
         percent = max(0, min(100, int(percent)))
+        self.percent = percent
         safe_state = html.escape(str(state))
         safe_detail = html.escape(str(detail))
         color = "#16a34a" if state == "Completed" else "#dc2626" if state == "Failed" else "#facc15"
