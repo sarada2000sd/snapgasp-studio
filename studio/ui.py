@@ -41,7 +41,7 @@ def build_dashboard():
             result = action()
             panel.update(100, finished_label, result or "Done.")
         except Exception as exc:
-            panel.update(0, "Failed", f"{type(exc).__name__}: {exc}")
+            panel.update(panel.percent, "Failed", f"{type(exc).__name__}: {exc}")
 
     def install_cb(model_id):
         def action():
