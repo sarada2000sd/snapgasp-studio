@@ -25,7 +25,7 @@ class CogVideoXAdapter(ModelAdapter):
         return {k:k in params for k in ("prompt","negative_prompt","height","width","num_frames","num_inference_steps","guidance_scale","generator","callback_on_step_end","callback_on_step_end_tensor_inputs")}
     @staticmethod
     def target_size(resolution, aspect):
-        sizes={"360p":(640,360),"720p":(1280,720),"1080p":(1920,1080)}
+        sizes={"360p":(640,360),"480p":(832,480),"720p":(1280,720),"1080p":(1920,1080)}
         w,h=sizes[resolution]
         return (h,w) if aspect=="9:16" else (w,h)
     def generate(self,prompt,negative_prompt="",width=720,height=480,frames=49,fps=8,steps=30,guidance=6,seed=0,
