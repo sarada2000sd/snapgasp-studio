@@ -10,6 +10,16 @@ def is_installed(model_id):
 def install_model(spec, force=False):
     from huggingface_hub import snapshot_download
     p=model_dir(spec["id"]); p.parent.mkdir(parents=True,exist_ok=True)
+    required_gb=float(spec.get("estimated_min_disk_gb",0))
+    if required_gb:
+        used_gb=sum(f.stat().st_size for f in p.rglob("*") if f.is_file())/(1024**3) if p.exists() else 0
+        free_gb=shutil.disk_usage(p.parent).free/(1024**3)
+        if free_gb+used_gb < required_gb:
+            raise RuntimeError(
+                f"Not enough free Google Drive space. This model needs about {required_gb:.0f} GB; "
+                f"Drive has {free_gb:.1f} GB free and {used_gb:.1f} GB already downloaded. "
+                "Free up Drive space before installing."
+            )
     snapshot_download(repo_id=spec["repo_id"],repo_type="model",local_dir=str(p),force_download=force)
     return str(p)
 def uninstall_model(model_id):
