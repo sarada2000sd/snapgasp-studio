@@ -130,7 +130,6 @@ def build_dashboard():
                          f"{result['note']}")
             with output.redirect_to_element("#" + prefix + "_video_result"):
                 display(Video(path, embed=True))
-                display(HTML(f'<a style="color:#ffd400" href="https://localhost:0/" target="_blank">Video saved in Drive</a>'))
         except Exception as exc:
             panel.update(0, "Failed", f"{type(exc).__name__}: {exc}")
 
