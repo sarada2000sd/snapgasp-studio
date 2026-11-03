@@ -378,7 +378,8 @@ def build_dashboard():
         else if(model==="wan21-t2v-13b") messages.push("Model renders at native 832×480.");
         else messages.push("Model renders at 720×480.");
         if(res==="1080p") messages.push("1080p is an upscale; it adds no new AI detail.");
-        else if(res==="480p") messages.push("480p is the Wan2.1 model's native output size.");
+        else if(res==="480p" && model==="wan21-t2v-13b") messages.push("480p is the Wan2.1 model's native output size.");
+        else if(res==="480p") messages.push("480p is an export resize from the selected model's native frames.");
         else if(res==="720p") messages.push("720p is resized/upscaled from the model's native render.");
         else messages.push("360p is downscaled to reduce file size.");
         if(ratio==="9:16") messages.push("Vertical output is a centre crop; keep the main subject near the centre.");
