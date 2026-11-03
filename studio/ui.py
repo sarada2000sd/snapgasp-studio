@@ -72,7 +72,7 @@ def build_dashboard():
             spec, reason = check_spec(model_id)
             result = controller.load(spec)
             return f"{result}\\n{reason}"
-        run_status(prefix + "_" + modality + "_status", "Loading the selected model. This can take several minutes…", action)
+        run_status(prefix + "_" + modality + "_progress", "Loading the selected model. This can take several minutes…", action)
 
     def image_generate_cb(model_id, prompt, negative, width, height, steps, guidance, seed):
         target = prefix + "_image_progress"
@@ -85,7 +85,8 @@ def build_dashboard():
             adapter = controller.require_active(model_id)
             image = adapter.generate(prompt=str(prompt), negative_prompt=str(negative),
                                      width=int(width), height=int(height), steps=int(steps),
-                                     guidance=float(guidance), seed=int(seed))
+                                     guidance=float(guidance), seed=int(seed),
+                                     progress_callback=panel)
             path = output_dir("images") / f"image_{int(time.time())}_seed{int(seed)}.png"
             image.save(path)
             panel.update(100, "Completed", f"Image saved to Google Drive: {path}")
