@@ -3,7 +3,7 @@ import time
 import uuid
 
 import torch
-from PIL import ImageOps
+from PIL import Image, ImageOps
 from diffusers import AutoencoderKLWan, WanPipeline
 from diffusers.schedulers.scheduling_unipc_multistep import UniPCMultistepScheduler
 from diffusers.utils import export_to_video
@@ -149,15 +149,20 @@ class Wan21T2V13BAdapter(ModelAdapter):
 
         width, height = self._target_size(resolution, aspect_ratio)
         target_size = (int(width), int(height))
-        converted = [
-            ImageOps.fit(
-                frame.convert("RGB"),
-                target_size,
-                method=Image.Resampling.LANCZOS,
-                centering=(0.5, 0.5),
+        converted = []
+        for frame in video_frames[0]:
+            if not isinstance(frame, Image.Image):
+                if torch.is_tensor(frame):
+                    frame = frame.detach().cpu().numpy()
+                frame = Image.fromarray(frame)
+            converted.append(
+                ImageOps.fit(
+                    frame.convert("RGB"),
+                    target_size,
+                    method=Image.Resampling.LANCZOS,
+                    centering=(0.5, 0.5),
+                )
             )
-            for frame in video_frames[0]
-        ]
         path = output_dir("videos") / f"wan21_13b_{int(time.time())}_{uuid.uuid4().hex[:8]}.mp4"
         export_to_video(converted, str(path), fps=16)
         return {
