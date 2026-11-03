@@ -23,7 +23,7 @@ def inspect_runtime():
     except Exception as e: info["warning"] = str(e)
     return info
 def can_attempt_model(spec, runtime):
-    if spec.get("state") != "implemented" or not spec.get("adapter"):
+    if spec.get("state") not in ("implemented", "experimental") or not spec.get("adapter"):
         return False, "Adapter not implemented."
     if not runtime.get("cuda_available"): return False, "Attach a CUDA GPU first."
     need_gpu, total_gpu = float(spec.get("estimated_min_vram_gb",0)), float(runtime.get("gpu_total_gb",0))
