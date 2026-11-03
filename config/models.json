@@ -67,6 +67,43 @@
       }
     },
     {
+      "id": "cogvideox15-5b",
+      "name": "CogVideoX 1.5 · 5B (INT8 transformer experimental)",
+      "repo_id": "zai-org/CogVideoX1.5-5B",
+      "modality": "video",
+      "adapter": "cogvideox15",
+      "state": "experimental",
+      "estimated_min_vram_gb": 8,
+      "estimated_min_ram_gb": 12,
+      "estimated_min_disk_gb": 32,
+      "defaults": {
+        "width": 1360,
+        "height": 768,
+        "duration_seconds": 5,
+        "frames": 81,
+        "fps": 16,
+        "steps": 30,
+        "guidance": 6
+      },
+      "controls": {
+        "resolution_presets": [
+          "360p",
+          "720p",
+          "1080p"
+        ],
+        "aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "durations_seconds": [
+          5,
+          10
+        ],
+        "fps": 16
+      },
+      "notes": "Experimental T4 path. INT8 weight-only transformer quantization via Optimum Quanto; FP16 activations. Source generation uses native 1360x768. 360p/720p/1080p are export sizes; 1080p is upscaled, and 9:16 is centre-cropped from landscape. T4 has not been officially benchmarked for this path."
+    },
+    {
       "id": "cogvideox-2b",
       "name": "CogVideoX 2B",
       "repo_id": "THUDM/CogVideoX-2b",
